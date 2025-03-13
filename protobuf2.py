@@ -1,8 +1,8 @@
 from confluent_kafka import SerializingProducer
 from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
-from confluent_kafka.serialization import SerializationContext, MessageField
-from sample_pb2 import SampleRecord, Address  # ✅ Ensure Address is imported
+from confluent_kafka.serialization import StringSerializer  # ✅ Use StringSerializer
+from sample_pb2 import SampleRecord, Address  # ✅ Import Address
 
 # Configure Schema Registry client
 schema_registry_conf = {'url': 'http://localhost:8081'}
@@ -15,10 +15,10 @@ protobuf_serializer = ProtobufSerializer(
     {"use.deprecated.format": False}  # 🚀 Explicitly disable deprecated format
 )
 
-# Configure Kafka producer
+# ✅ Fix `key.serializer` by using `StringSerializer()`
 producer_conf = {
     'bootstrap.servers': 'localhost:9092',
-    'key.serializer': str.encode,
+    'key.serializer': StringSerializer('utf-8'),  # ✅ Fix key serialization
     'value.serializer': protobuf_serializer
 }
 producer = SerializingProducer(producer_conf)
@@ -41,10 +41,10 @@ def produce_protobuf_message(topic, message_count=5):
             )
         )
 
-        # ✅ Remove 'context' from produce()
+        # ✅ Ensure correct Key serialization (String)
         producer.produce(
             topic=topic,
-            key=f"key_{i}",
+            key=str(i),  # ✅ Convert key to string
             value=record,
             on_delivery=delivery_report  # ✅ Keep on_delivery
         )
