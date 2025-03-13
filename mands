@@ -5,3 +5,13 @@ curl -X POST http://localhost:8081/subjects/topic1-value/versions \
 
 
 curl -X GET http://localhost:8081/subjects/topic1-value/versions/latest | jq
+
+
+kafka-console-consumer --bootstrap-server localhost:9092 --topic topic1 --from-beginning --property print.key=true --property key.separator=" | "
+
+
+
+curl -X GET http://localhost:8083/connectors/snowflake-sink-connector/status | jq
+
+
+
