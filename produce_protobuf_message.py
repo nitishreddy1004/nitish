@@ -4,6 +4,7 @@ import time
 import random
 import string
 from datetime import datetime
+from google.protobuf.json_format import MessageToJson
 from sample_pb2 import SampleRecord, Address
 
 def flatten_dict(data, parent_key='', separator='_'):
@@ -33,7 +34,6 @@ def produce_protobuf_message(topic, message_count=5):
         address.zip = f"{random.randint(10000, 99999)}"
 
         # Convert to JSON
-        from google.protobuf.json_format import MessageToJson
         json_str = MessageToJson(record)
 
         # Flatten the JSON data
