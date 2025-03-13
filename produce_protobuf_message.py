@@ -1,29 +1,24 @@
-import subprocess
 import json
 import time
 import random
 import string
 from datetime import datetime
+from kafka import KafkaProducer
 from google.protobuf.json_format import MessageToJson
-from sample_pb2 import SampleRecord, Address
+from sample_pb2 import SampleRecord
 
-def flatten_dict(data, parent_key='', separator='_'):
-    items = []
-    for key, value in data.items():
-        new_key = f"{parent_key}{separator}{key}" if parent_key else key
-        if isinstance(value, dict):
-            items.extend(flatten_dict(value, new_key, separator).items())
-        else:
-            items.append((new_key, value))
-    return dict(items)
+def produce_protobuf_as_json(topic, message_count=5):
+    # Initialize Kafka producer with JSON serializer
+    producer = KafkaProducer(
+        bootstrap_servers='localhost:9092',
+        value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    )
 
-def produce_protobuf_message(topic, message_count=5):
     for i in range(message_count):
-        # Create message data
-        name = ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
+        # Create a Protobuf message
         record = SampleRecord()
         record.id = i
-        record.name = name
+        record.name = ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
         record.amount = round(random.uniform(100, 10000), 2)
         record.timestamp = int(datetime.now().timestamp() * 1000)
         record.is_active = random.choice([True, False])
@@ -33,40 +28,18 @@ def produce_protobuf_message(topic, message_count=5):
         address.state = random.choice(["NY", "CA", "IL"])
         address.zip = f"{random.randint(10000, 99999)}"
 
-        # Convert to JSON
-        json_str = MessageToJson(record)
+        # Serialize Protobuf message to JSON
+        json_message = MessageToJson(record)
 
-        # Flatten the JSON data
-        data = json.loads(json_str)
-        flattened_data = flatten_dict(data)
-        flattened_json = json.dumps(flattened_data)
-
-        # Use the kafka-console-producer tool
-        cmd = [
-            "sudo", "docker", "exec", "-i", "kafka",
-            "bash", "-c",
-            f"echo '{flattened_json}' | kafka-console-producer --bootstrap-server kafka:29092 --topic {topic}"
-        ]
-
-        print(f"Sending message {i}: {flattened_json}")
-
-        # Execute the command
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        stdout, stderr = process.communicate()
-
-        if process.returncode != 0:
-            print(f"Error sending message: {stderr.decode()}")
-        else:
-            print(f"Successfully sent message {i}")
+        # Send JSON message to Kafka
+        producer.send(topic, value=json.loads(json_message))
+        print(f"Sent message {i}: {json_message}")
 
         # Wait between messages
         time.sleep(0.5)
 
-    print(f"Sent {message_count} messages to {topic}")
+    producer.flush()
+    print(f"Sent {message_count} messages to topic '{topic}'.")
 
 if __name__ == "__main__":
-    produce_protobuf_message("topic1", 10)
+    produce_protobuf_as_json("topic1", 10)
