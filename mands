@@ -1,0 +1,3 @@
+curl -X POST http://localhost:8081/subjects/topic1-value/versions \
+     -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+     -d '{"schemaType": "PROTOBUF", "schema": "syntax = \"proto3\"; package com.example; message Address { string street = 1; string city = 2; string state = 3; string zip = 4; } message SampleRecord { int32 id = 1; string name = 2; double amount = 3; int64 timestamp = 4; bool is_active = 5; Address address = 6; }"}'
