@@ -14,4 +14,5 @@ kafka-console-consumer --bootstrap-server localhost:9092 --topic topic1 --from-b
 curl -X GET http://localhost:8083/connectors/snowflake-sink-connector/status | jq
 
 
+protoc --proto_path=. --python_out=. key.proto
 
