@@ -16,3 +16,7 @@ curl -X GET http://localhost:8083/connectors/snowflake-sink-connector/status | j
 
 protoc --proto_path=. --python_out=. key.proto
 
+
+curl -X DELETE http://localhost:8081/subjects/topic1-value
+
+
