@@ -2,7 +2,7 @@ from confluent_kafka import SerializingProducer
 from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.serialization import SerializationContext, MessageField
-from sample_pb2 import SampleRecord, Address  # ✅ Explicitly import Address
+from sample_pb2 import SampleRecord, Address  # ✅ Ensure Address is imported
 
 # Configure Schema Registry client
 schema_registry_conf = {'url': 'http://localhost:8081'}
@@ -33,7 +33,7 @@ def produce_protobuf_message(topic, message_count=5):
             amount=round(100 + i * 10.5, 2),
             timestamp=1643723400 + i * 1000,
             is_active=(i % 2 == 0),
-            address=Address(  # ✅ Reference Address directly
+            address=Address(  # ✅ Correct Address reference
                 street=f"{100 + i} Main St",
                 city="New York",
                 state="NY",
@@ -41,13 +41,12 @@ def produce_protobuf_message(topic, message_count=5):
             )
         )
 
-        # ✅ Ensure correct Protobuf serialization context
+        # ✅ Remove 'context' from produce()
         producer.produce(
             topic=topic,
             key=f"key_{i}",
             value=record,
-            on_delivery=delivery_report,
-            context=SerializationContext(topic, MessageField.VALUE)  # Required for Protobuf
+            on_delivery=delivery_report  # ✅ Keep on_delivery
         )
         print(f"✅ Sent message {i}: {record}")
 
