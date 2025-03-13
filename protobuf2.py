@@ -2,7 +2,7 @@ from confluent_kafka import SerializingProducer
 from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.serialization import SerializationContext, MessageField
-from sample_pb2 import SampleRecord  # Import generated Protobuf class
+from sample_pb2 import SampleRecord, Address  # ✅ Explicitly import Address
 
 # Configure Schema Registry client
 schema_registry_conf = {'url': 'http://localhost:8081'}
@@ -26,14 +26,14 @@ producer = SerializingProducer(producer_conf)
 def produce_protobuf_message(topic, message_count=5):
     """Produce Protobuf messages to Kafka."""
     for i in range(message_count):
-        # Create a Protobuf message
+        # ✅ Correctly reference Address inside SampleRecord
         record = SampleRecord(
             id=i,
             name=f"User_{i}",
             amount=round(100 + i * 10.5, 2),
             timestamp=1643723400 + i * 1000,
             is_active=(i % 2 == 0),
-            address=SampleRecord.Address(
+            address=Address(  # ✅ Reference Address directly
                 street=f"{100 + i} Main St",
                 city="New York",
                 state="NY",
