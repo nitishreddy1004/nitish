@@ -8,11 +8,11 @@ from sample_pb2 import SampleRecord  # Import generated Protobuf class
 schema_registry_conf = {'url': 'http://localhost:8081'}
 schema_registry_client = SchemaRegistryClient(schema_registry_conf)
 
-# ✅ Add the required property to explicitly define compatibility
+# ✅ Add required format compatibility setting
 protobuf_serializer = ProtobufSerializer(
-    SampleRecord, 
+    SampleRecord,
     schema_registry_client,
-    {"use.deprecated.confluent.schema": False}  # 🚀 Explicitly set compatibility
+    {"use.deprecated.format": False}  # 🚀 Explicitly disable deprecated format
 )
 
 # Configure Kafka producer
@@ -47,7 +47,7 @@ def produce_protobuf_message(topic, message_count=5):
             key=f"key_{i}",
             value=record,
             on_delivery=delivery_report,
-            context=SerializationContext(topic, MessageField.VALUE)  # 🚀 Required for Protobuf
+            context=SerializationContext(topic, MessageField.VALUE)  # Required for Protobuf
         )
         print(f"✅ Sent message {i}: {record}")
 
