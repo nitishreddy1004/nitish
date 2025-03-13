@@ -3,7 +3,6 @@ from confluent_kafka.schema_registry.protobuf import ProtobufSerializer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from sample_pb2 import SampleRecord
 
-
 # Configure Schema Registry client
 schema_registry_conf = {'url': 'http://localhost:8081'}
 schema_registry_client = SchemaRegistryClient(schema_registry_conf)
@@ -14,11 +13,10 @@ protobuf_serializer = ProtobufSerializer(SampleRecord, schema_registry_client)
 # Configure Kafka producer
 producer_conf = {
     'bootstrap.servers': 'localhost:9092',
-    'key.serializer': str.encode,  # Serialize keys as strings
-    'value.serializer': protobuf_serializer  # Serialize values as Protobuf-serialized messages
+    'key.serializer': str.encode,
+    'value.serializer': protobuf_serializer
 }
 producer = SerializingProducer(producer_conf)
-
 
 def produce_protobuf_message(topic, message_count=5):
     """Produce Protobuf messages to Kafka."""
@@ -45,7 +43,6 @@ def produce_protobuf_message(topic, message_count=5):
     # Wait for all messages to be sent
     producer.flush()
     print(f"All {message_count} messages sent to topic '{topic}'.")
-
 
 if __name__ == "__main__":
     produce_protobuf_message("topic1", 10)
