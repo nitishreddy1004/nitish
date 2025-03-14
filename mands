@@ -21,4 +21,8 @@ curl -X DELETE http://localhost:8081/subjects/topic1-value
 
 sed -i 's/delete.topic.enable=false/delete.topic.enable=true/' /etc/kafka/server.properties
 
+kafka-topics --bootstrap-server <kafka-broker>:9092 --list
+kafka-console-consumer --bootstrap-server <kafka-broker>:9092 --topic topic2 --from-beginning
+
+
 
