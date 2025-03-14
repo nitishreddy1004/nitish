@@ -24,5 +24,8 @@ sed -i 's/delete.topic.enable=false/delete.topic.enable=true/' /etc/kafka/server
 kafka-topics --bootstrap-server <kafka-broker>:9092 --list
 kafka-console-consumer --bootstrap-server <kafka-broker>:9092 --topic topic2 --from-beginning
 
+ sudo docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic
+ topic1 --from-beginning 
+
 
 
