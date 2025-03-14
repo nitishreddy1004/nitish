@@ -19,4 +19,6 @@ protoc --proto_path=. --python_out=. key.proto
 
 curl -X DELETE http://localhost:8081/subjects/topic1-value
 
+sed -i 's/delete.topic.enable=false/delete.topic.enable=true/' /etc/kafka/server.properties
+
 
