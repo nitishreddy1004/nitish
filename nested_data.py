@@ -10,9 +10,9 @@ def generate_nested_data():
     """Generate a deeply nested JSON structure with arrays and large numbers."""
     name = ''.join(random.choice(string.ascii_uppercase) for _ in range(10))
 
-    # Generating large numbers
-    large_number = 154745.67896544345759374856
-    very_large_number = 1436494048564336484950496484
+    # Generating large numbers (as strings to prevent precision loss)
+    large_number = "154745.67896544345759374856"
+    very_large_number = "1436494048564336484950496484"
 
     # Generate multiple amounts
     amount_list = [round(random.uniform(10, 1000), 2) for _ in range(3)]  # Array of amounts
@@ -20,9 +20,11 @@ def generate_nested_data():
     message = {
         "id": random.randint(1, 100),
         "name": name,
-        "amount": amount_list,
+        "amount": amount_list,  # Ensure amount is an array
         "timestamp_ntz": int(datetime.now().timestamp() * 1000),  # Unix timestamp
         "is_active": random.choice([True, False]),
+        "large_number": large_number,  # Wrapped as a string
+        "very_large_number": very_large_number,  # Wrapped as a string
         "address": {
             "street": f"{random.randint(100, 999)} Main St",
             "states": [
@@ -53,8 +55,22 @@ def produce_protobuf_message(topic, message_count=5):
     for i in range(message_count):
         message = generate_nested_data()
 
-        # Convert to JSON
+        # Convert to JSON safely
         json_str = json.dumps(message, indent=2)
+
+        # Save the JSON message for debugging
+        with open(f"message_{i}.json", "w") as f:
+            f.write(json_str)
+
+        print(f"Generated JSON for message {i}:")
+        print(json_str)
+
+        # Ensure JSON format is valid before sending to Kafka
+        try:
+            json.loads(json_str)
+        except json.JSONDecodeError as e:
+            print(f"❌ Invalid JSON before sending to Kafka: {e}")
+            continue  # Skip sending this message if it's invalid
 
         schema_definition = """
         syntax = "proto3";
@@ -65,6 +81,8 @@ def produce_protobuf_message(topic, message_count=5):
           repeated double amount = 3;
           int64 timestamp_ntz = 4;
           bool is_active = 5;
+          string large_number = 6;
+          string very_large_number = 7;
           message Address {
             string street = 1;
             message State {
@@ -83,7 +101,7 @@ def produce_protobuf_message(topic, message_count=5):
             }
             repeated State states = 2;
           }
-          Address address = 6;
+          Address address = 8;
         }
         """
 
@@ -97,7 +115,7 @@ def produce_protobuf_message(topic, message_count=5):
             f"--property value.schema='{schema_definition}'"
         ]
 
-        print(f"Sending message {i}: {json_str}")
+        print(f"📤 Sending message {i} to Kafka...")
 
         # Execute the command
         process = subprocess.Popen(
@@ -108,14 +126,14 @@ def produce_protobuf_message(topic, message_count=5):
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
-            print(f"Error sending message: {stderr.decode()}")
+            print(f"❌ Error sending message {i}: {stderr.decode()}")
         else:
-            print(f"Successfully sent message {i}")
+            print(f"✅ Successfully sent message {i}")
 
         # Wait between messages
         time.sleep(0.5)
 
-    print(f"Sent {message_count} messages to {topic}")
+    print(f"✅ Sent {message_count} messages to {topic}")
 
 if __name__ == "__main__":
     produce_protobuf_message("topic1", 10)
