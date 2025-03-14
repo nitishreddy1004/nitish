@@ -27,5 +27,8 @@ kafka-console-consumer --bootstrap-server <kafka-broker>:9092 --topic topic2 --f
  sudo docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic
  topic1 --from-beginning 
 
+curl -X PUT -H "Content-Type: application/json" \
+  --data '{"compatibility": "FORWARD_TRANSITIVE"}' \
+  http://localhost:8081/config
 
 
