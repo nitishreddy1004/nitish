@@ -8,28 +8,23 @@ option java_outer_classname = "SampleProtos";
 message SampleRecord {
   int32 id = 1;
   string name = 2;
-  repeated double amounts = 3;  // Multiple amounts as an array
-  int64 timestamp_ntz = 4; // Timestamp in milliseconds (epoch)
+  repeated double amounts = 3; // Array of amounts
+  int64 timestamp_ntz = 4; // Non-timezone timestamp
   bool is_active = 5;
 
   message Address {
     int32 state_id = 1;
     string state_name = 2;
-    
+
     message City {
       int32 city_id = 1;
       string city_name = 2;
-      
-      message County {
-        string county_name = 1;
-        string zip_code = 2;
-      }
-
-      County county = 3;
     }
 
-    repeated City cities = 3; // A state has multiple cities
+    repeated City cities = 3; // Array of cities
+    string street = 4;
+    string zip = 5;
   }
 
-  Address address = 6;
+  repeated Address addresses = 6; // Multiple addresses per user
 }
