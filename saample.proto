@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package com.example;
+
+option java_package = "com.example";
+option java_outer_classname = "SampleProtos";
+
+message SampleRecord {
+  int32 id = 1;
+  string name = 2;
+  double amount = 3;
+  int64 timestamp = 4;
+  bool is_active = 5;
+
+  // Updated Address structure (Removed street)
+  message Address {
+    State state = 1;
+
+    message State {
+      int32 state_id = 1;
+      string state_name = 2;
+      City city = 3;
+
+      message City {
+        int32 city_id = 1;
+        string city_name = 2;
+        string county = 3;
+        string zip = 4;
+      }
+    }
+  }
+
+  // Optional field for nested data
+  optional Address address = 6;
+}
