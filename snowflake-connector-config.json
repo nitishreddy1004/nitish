@@ -24,7 +24,7 @@
     "snowflake.value.schema.mapping":"true",
     "snowflake.value.converter.output.format":"FLATTEN",
     "transforms":"flatten",
-    "transforms.flatten.type":org.apache.kafka.connect.transforms.Flatten$Value",
+    "transforms.flatten.type":"org.apache.kafka.connect.transforms.Flatten$Value",
     "transforms.flatten.delimiter":"_"
     "errors.tolerance": "all",
     "errors.log.enable": "true"
