@@ -1,0 +1,1 @@
+curl -sL https://aka.ms/downloadazcopy-v10-linux | tar -xz
