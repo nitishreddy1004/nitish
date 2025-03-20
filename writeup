@@ -3,3 +3,161 @@ Whenever a new column needs to be added: ✅ Edit sample.proto and assign a uniq
 ✅ Update the producer script to include the new field.
 ✅ Restart Kafka and produce messages with the new column.
 ✅ Verify the new column in Snowflake (if schema evolution is enabled).
+
+
+
+### **Backward Compatibility Rules in Protobuf & Kafka Schema Evolution**  
+
+When modifying a **Protobuf schema (`sample.proto`)** in a Kafka-based system, backward compatibility is crucial to **avoid breaking existing consumers**. Below are the key **backward compatibility rules** to follow:
+
+---
+
+### **1. Safe Changes (Backward Compatible ✅)**
+These changes allow **new producers** and **existing consumers** to continue functioning without issues.
+
+#### ✅ **Adding a New Field (Recommended Approach)**
+- New fields should be **optional** or have **default values**.
+- Assign a unique **field number** that has never been used before.
+- **Kafka Connect Snowflake Sink** can automatically add this new column in Snowflake.
+
+**Example: Adding `calories` column**
+```proto
+message SampleRecord {
+  int32 id = 1;
+  string name = 2;
+  double amount = 3;
+  int64 timestamp = 4;
+  bool is_active = 5;
+  Address address = 6;
+  int32 calories = 7;  // New column added (safe change)
+}
+```
+➡️ **Existing consumers will still work because they will ignore the new field.**  
+
+---
+
+#### ✅ **Renaming Fields (Only if Using Aliases)**
+- **Protobuf itself does NOT support renaming fields** safely.
+- Instead, **keep the old field and introduce a new one**, then migrate data.
+
+**Example: Old `price` renamed to `amount`**
+```proto
+message SampleRecord {
+  int32 id = 1;
+  string name = 2;
+  double price = 3;  // Old field (deprecated)
+  double amount = 8;  // New field (safe change)
+}
+```
+➡️ **Update consumers to read from `amount`, then remove `price` later.**  
+
+---
+
+#### ✅ **Changing Field Types (Only in Safe Cases)**
+Certain type changes **won’t break consumers** if they maintain compatibility:
+| **Old Type**  | **New Type (Safe)** |
+|--------------|-----------------|
+| `int32`      | `int64`          |
+| `float`      | `double`         |
+| `bytes`      | `string`         |
+
+🚨 **Unsafe changes (breaking) include:**
+- Changing `int64` → `int32`
+- Changing `string` → `int32`
+- Changing `bool` → `string`
+
+---
+
+### **2. Breaking Changes (NOT Backward Compatible ❌)**
+These changes **break consumers** and should be avoided in production.
+
+#### ❌ **Removing a Field**
+- **DO NOT** remove a field that is actively used.
+- Instead, **mark it as deprecated** and remove it later.
+
+**Example (DO NOT DO THIS)**:
+```proto
+message SampleRecord {
+  int32 id = 1;
+  string name = 2;
+  // Removed field (BREAKING CHANGE ❌)
+}
+```
+➡️ **Old consumers expecting `name` will break!**  
+
+✅ **Instead, use deprecation:**
+```proto
+message SampleRecord {
+  int32 id = 1;
+  string name = 2 [deprecated = true];  // Mark deprecated, but don't remove immediately
+}
+```
+
+---
+
+#### ❌ **Reusing a Field Number**
+- **DO NOT** change the meaning of an existing field number.
+- Protobuf relies on **field numbers** for serialization.
+
+**Example (DO NOT DO THIS):**
+```proto
+message SampleRecord {
+  int32 id = 1;
+  bool is_active = 3;  // Changed from `double amount` to `bool` (BREAKING CHANGE ❌)
+}
+```
+➡️ **Old consumers expecting `amount` as `double` will now receive `bool` values, causing deserialization errors.**  
+
+✅ **Instead, use a new field number**:
+```proto
+message SampleRecord {
+  int32 id = 1;
+  double amount = 3;  // Keep existing field
+  bool is_active = 8; // Use a new field number
+}
+```
+
+---
+
+#### ❌ **Changing Field Types (Incompatible Changes)**
+- **DO NOT** change types that alter binary encoding.
+- Example **(DO NOT DO THIS)**:
+  ```proto
+  message SampleRecord {
+    int32 id = 1;
+    bool is_active = 3;  // Previously a `double` (BREAKING ❌)
+  }
+  ```
+- **Consumers will fail to deserialize messages!**
+
+---
+
+### **3. Best Practices for Schema Evolution**
+✔️ Always **add new fields with new field numbers**.  
+✔️ If deprecating fields, **leave them in the schema** until all consumers are updated.  
+✔️ Never **reassign an old field number**.  
+✔️ **Test schema changes** before deploying to production.  
+✔️ Use **schema registry compatibility checks** to prevent breaking changes.
+
+---
+
+### **4. Verifying Schema Evolution in Snowflake**
+1. **Ensure `auto.schema.evolution` is enabled** in Kafka Snowflake Connector:
+   ```json
+   "auto.schema.evolution": "true"
+   ```
+2. **Check if the new column appears in Snowflake**:
+   ```sql
+   SELECT * FROM YOUR_SNOWFLAKE_TABLE LIMIT 10;
+   ```
+3. If the column **does NOT appear**, manually update the schema in Snowflake:
+   ```sql
+   ALTER TABLE YOUR_SNOWFLAKE_TABLE ADD COLUMN calories INT;
+   ```
+
+---
+
+### **Conclusion**
+Following **backward compatibility rules** ensures **existing consumers continue working** while allowing **schema evolution**. **Always test** schema changes before deployment!
+
+🚀 **Let me know if you need further clarification!**
