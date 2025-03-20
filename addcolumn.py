@@ -5,7 +5,6 @@ import random
 import string
 import subprocess
 from datetime import datetime
-from google.protobuf.timestamp_pb2 import Timestamp
 
 def produce_messages(topic, num_messages=100):
     """Produce messages to Kafka using kafka-protobuf-console-producer in the container"""
@@ -29,10 +28,6 @@ def produce_messages(topic, num_messages=100):
             }
         }
 
-        # Create a Protobuf Timestamp object
-        timestamp_obj = Timestamp()
-        timestamp_obj.GetCurrentTime()
-
         message = {
             "id": i,
             "name": name,
@@ -40,7 +35,7 @@ def produce_messages(topic, num_messages=100):
             "timestamp": int(datetime.now().timestamp() * 1000000000),
             "is_active": random.choice([True, False]),
             "address": address,
-            "timeintimestamp": {"seconds": timestamp_obj.seconds, "nanos": timestamp_obj.nanos}  # New timestamp field
+            "calories": random.randint(50, 500)  # New calories column
         }
 
         # Convert to JSON
@@ -55,7 +50,6 @@ def produce_messages(topic, num_messages=100):
           --property value.schema='
             syntax = "proto3";
             package com.example;
-            import "google/protobuf/timestamp.proto";
 
             message SampleRecord {{
               int32 id = 1;
@@ -82,7 +76,7 @@ def produce_messages(topic, num_messages=100):
               }}
 
               Address address = 6;
-              google.protobuf.Timestamp timeintimestamp = 7;  // New timestamp field
+              int32 calories = 7;  // New column added
             }}'
         """
 
