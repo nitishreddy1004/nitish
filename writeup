@@ -1,0 +1,5 @@
+Whenever a new column needs to be added: ✅ Edit sample.proto and assign a unique field number.
+✅ Register the updated schema in Schema Registry.
+✅ Update the producer script to include the new field.
+✅ Restart Kafka and produce messages with the new column.
+✅ Verify the new column in Snowflake (if schema evolution is enabled).
