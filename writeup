@@ -4,6 +4,8 @@ Whenever a new column needs to be added: ✅ Edit sample.proto and assign a uniq
 ✅ Restart Kafka and produce messages with the new column.
 ✅ Verify the new column in Snowflake (if schema evolution is enabled).
 
+Schema Auto-Update in Snowflake: If the sample.proto file is updated and producer messages contain new fields, Snowflake automatically adds new columns to accommodate the changes.
+
 
 
 ### **Backward Compatibility Rules in Protobuf & Kafka Schema Evolution**  
